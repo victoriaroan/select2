@@ -703,6 +703,7 @@ the specific language governing permissions and limitations under the Apache Lic
             if (this.liveRegion.length == 0) {
                 this.liveRegion = $("<span>", {
                         role: "status",
+                        "aria-hidden": "true",
                         "aria-live": "polite"
                     })
                     .addClass("select2-hidden-accessible")
@@ -1769,7 +1770,7 @@ the specific language governing permissions and limitations under the Apache Lic
 
             this.ensureHighlightVisible();
 
-            this.liveRegion.text(choice.text());
+//            this.liveRegion.text(choice.text());
 
             data = choice.data("select2-data");
             if (data) {
@@ -2273,7 +2274,7 @@ the specific language governing permissions and limitations under the Apache Lic
 
             // add aria associations
             selection.find(".select2-chosen").attr("id", "select2-chosen-"+idSuffix);
-            this.focusser.attr("aria-labelledby", "select2-chosen-"+idSuffix);
+            this.focusser.attr("aria-describedby", "select2-chosen-"+idSuffix);
             this.results.attr("id", "select2-results-"+idSuffix);
             this.search.attr("aria-owns", "select2-results-"+idSuffix);
 
@@ -2323,7 +2324,7 @@ the specific language governing permissions and limitations under the Apache Lic
                         killEvent(e);
                         return;
                     case KEY.TAB:
-                        this.selectHighlighted({noFocus: true});
+                    	this.close();
                         return;
                     case KEY.ESC:
                         this.cancel(e);
@@ -2445,6 +2446,7 @@ the specific language governing permissions and limitations under the Apache Lic
             }));
 
             this.initContainerWidth();
+            this.opts.element.attr("aria-hidden","true");
             this.opts.element.hide();
             this.setPlaceholder();
 
@@ -2890,6 +2892,9 @@ the specific language governing permissions and limitations under the Apache Lic
                 _this.search[0].focus();
                 _this.selectChoice($(this));
             });
+            
+            // add descriptive hint for multi select boxes
+            this.search.attr("aria-describedby", "select2-hint");
 
             // rewrite labels from original element to focusser
             this.search.attr("id", "s2id_autogen"+nextUid());
@@ -2943,6 +2948,9 @@ the specific language governing permissions and limitations under the Apache Lic
                     }
 
                     this.selectChoice(selectedChoice);
+                    if(selectedChoice) {
+                        this.liveRegion.text(selectedChoice.text());
+                    }
                     killEvent(e);
                     if (!selectedChoice || !selectedChoice.length) {
                         this.open();
@@ -2951,7 +2959,9 @@ the specific language governing permissions and limitations under the Apache Lic
                 } else if (((e.which === KEY.BACKSPACE && this.keydowns == 1)
                     || e.which == KEY.LEFT) && (pos.offset == 0 && !pos.length)) {
 
-                    this.selectChoice(selection.find(".select2-search-choice:not(.select2-locked)").last());
+                    var lastSelection = selection.find(".select2-search-choice:not(.select2-locked)").last();
+                    this.selectChoice(lastSelection);
+                    this.liveRegion.text(lastSelection.text());
                     killEvent(e);
                     return;
                 } else {
@@ -2970,7 +2980,6 @@ the specific language governing permissions and limitations under the Apache Lic
                         killEvent(e);
                         return;
                     case KEY.TAB:
-                        this.selectHighlighted({noFocus:true});
                         this.close();
                         return;
                     case KEY.ESC:
@@ -3006,6 +3015,9 @@ the specific language governing permissions and limitations under the Apache Lic
                 }
 
             }));
+            
+            // create the multi hint
+            this.createHint();
 
             this.search.on("keyup", this.bind(function (e) {
                 this.keydowns = 0;
@@ -3049,10 +3061,22 @@ the specific language governing permissions and limitations under the Apache Lic
             }));
 
             this.initContainerWidth();
+            this.opts.element.attr("aria-hidden","true");
             this.opts.element.hide();
 
             // set the placeholder if necessary
             this.clearSearch();
+        },
+        // multi
+    	createHint: function () {
+            // create the hint if doesn't already exist
+            var mhint = $("#select2-hint");
+            if (mhint.length == 0) {
+                var mhint = $(document.createElement("div")).html(
+                   "autocomplete multi select field, Use left arrow to edit previous selections.");
+                mhint.css({ display: "none" }).attr("id","select2-hint");
+                 $("body").append(mhint);
+            }
         },
 
         // multi
@@ -3240,7 +3264,7 @@ the specific language governing permissions and limitations under the Apache Lic
                 enabledItem = $(
                     "<li class='select2-search-choice'>" +
                     "    <div></div>" +
-                    "    <a href='#' class='select2-search-choice-close' tabindex='-1'></a>" +
+                    "    <a href='#' class='select2-search-choice-close' tabindex='-1' aria-label='Press to remove this choice'></a>" +
                     "</li>"),
                 disabledItem = $(
                     "<li class='select2-search-choice select2-locked'>" +
