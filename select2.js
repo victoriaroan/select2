@@ -17,6 +17,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 Apache License or the GPL License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the Apache License and the GPL License for
 the specific language governing permissions and limitations under the Apache License and the GPL License.
+
+Edited by: Henry Chen & Brad Rutten on January 4, 2017:
+	- Made select2 more accessible.  When iterating through selected items with left and right arrow keys, screen readers will read out the highlighted item.
+	- Screen readers will now read instructions on how to edit previously selected items.
+
+Edited by: Brad Rutten on May 3, 2017:
+	-Added option focusOnLabelClick which, if set to true, will focus on the select2 container if the user click a previously selected option. (default: false)
 */
 (function ($) {
     if(typeof $.fn.each2 == "undefined") {
@@ -3038,6 +3045,9 @@ the specific language governing permissions and limitations under the Apache Lic
                 if (!this.isInterfaceEnabled()) return;
                 if ($(e.target).closest(".select2-search-choice").length > 0) {
                     // clicked inside a select2 search choice, do not open
+                	if (this.opts.focusOnLabelClick) {
+                        this.focusSearch();
+                    }
                     return;
                 }
                 this.selectChoice(null);
@@ -3639,6 +3649,7 @@ the specific language governing permissions and limitations under the Apache Lic
         loadMorePadding: 0,
         closeOnSelect: true,
         openOnEnter: true,
+        focusOnLabelClick: false,
         containerCss: {},
         dropdownCss: {},
         containerCssClass: "",
