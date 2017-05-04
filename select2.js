@@ -19,11 +19,14 @@ CONDITIONS OF ANY KIND, either express or implied. See the Apache License and th
 the specific language governing permissions and limitations under the Apache License and the GPL License.
 
 Edited by: Henry Chen & Brad Rutten on January 4, 2017:
-	- Made select2 more accessible.  When iterating through selected items with left and right arrow keys, screen readers will read out the highlighted item.
-	- Screen readers will now read instructions on how to edit previously selected items.
+    - Made select2 more accessible.  When iterating through selected items with left and right arrow keys, screen readers will read out the highlighted item.
+    - Screen readers will now read instructions on how to edit previously selected items.
 
 Edited by: Brad Rutten on May 3, 2017:
-	-Added option focusOnLabelClick which, if set to true, will focus on the select2 container if the user click a previously selected option. (default: false)
+    -Added option focusOnLabelClick which, if set to true, will focus on the select2 container if the user click a previously selected option. (default: false)
+
+Edited by: Victoria Good on May 4, 2017:
+    - Bound element label click event to select2 focus. Unbound event on select2 destroy.
 */
 (function ($) {
     if(typeof $.fn.each2 == "undefined") {
@@ -2252,6 +2255,9 @@ Edited by: Brad Rutten on May 3, 2017:
         destroy: function() {
             $("label[for='" + this.focusser.attr('id') + "']")
                 .attr('for', this.opts.element.attr("id"));
+            $("label[for='" + this.opts.element.attr("id") + "']")
+                .off(".select2");
+
             this.parent.destroy.apply(this, arguments);
 
             cleanupJQueryElements.call(this,
@@ -2289,6 +2295,7 @@ Edited by: Brad Rutten on May 3, 2017:
             this.focusser.attr("id", "s2id_autogen"+idSuffix);
 
             elementLabel = $("label[for='" + this.opts.element.attr("id") + "']");
+            elementLabel.on('click.select2', this.bind(function () { this.focus(); }));
             this.opts.element.on('focus.select2', this.bind(function () { this.focus(); }));
 
             this.focusser.prev()
@@ -2306,7 +2313,8 @@ Edited by: Brad Rutten on May 3, 2017:
 
             this.search.prev()
                 .text($("label[for='" + this.focusser.attr('id') + "']").text())
-                .attr('for', this.search.attr('id'));
+                .attr('for', this.search.attr('id'))
+                .on('click.select2', this.bind(function () { this.focus(); }));
 
             this.search.on("keydown", this.bind(function (e) {
                 if (!this.isInterfaceEnabled()) return;
@@ -2331,7 +2339,7 @@ Edited by: Brad Rutten on May 3, 2017:
                         killEvent(e);
                         return;
                     case KEY.TAB:
-                    	this.close();
+                        this.close();
                         return;
                     case KEY.ESC:
                         this.cancel(e);
@@ -2878,6 +2886,8 @@ Edited by: Brad Rutten on May 3, 2017:
         destroy: function() {
             $("label[for='" + this.search.attr('id') + "']")
                 .attr('for', this.opts.element.attr("id"));
+            $("label[for='" + this.opts.element.attr("id") + "']")
+                .off(".select2");
             this.parent.destroy.apply(this, arguments);
 
             cleanupJQueryElements.call(this,
@@ -2905,6 +2915,9 @@ Edited by: Brad Rutten on May 3, 2017:
 
             // rewrite labels from original element to focusser
             this.search.attr("id", "s2id_autogen"+nextUid());
+
+            var elementLabel = $("label[for='" + this.opts.element.attr("id") + "']");
+            elementLabel.on('click.select2', this.bind(function () { this.focus(); }));
 
             this.search.prev()
                 .text($("label[for='" + this.opts.element.attr("id") + "']").text())
@@ -3045,7 +3058,7 @@ Edited by: Brad Rutten on May 3, 2017:
                 if (!this.isInterfaceEnabled()) return;
                 if ($(e.target).closest(".select2-search-choice").length > 0) {
                     // clicked inside a select2 search choice, do not open
-                	if (this.opts.focusOnLabelClick) {
+                    if (this.opts.focusOnLabelClick) {
                         this.focusSearch();
                     }
                     return;
@@ -3078,7 +3091,7 @@ Edited by: Brad Rutten on May 3, 2017:
             this.clearSearch();
         },
         // multi
-    	createHint: function () {
+        createHint: function () {
             // create the hint if doesn't already exist
             var mhint = $("#select2-hint");
             if (mhint.length == 0) {
